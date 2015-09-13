@@ -15,5 +15,5 @@ SpringSessionの動作確認用の環境を、構築するためのAnsibleスク
 $ vagrant ssh-config > ssh.config
 $ vagrant up
 $ ansible-playbook -i host session_server.yml
-$ ansible-playbook -i ap_server.yml
+$ ansible-playbook -i host ap_server.yml
 ```
