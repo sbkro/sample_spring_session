@@ -1,0 +1,39 @@
+---
+
+- hosts: session_server
+  tasks:
+    - yum: name=* state=latest
+      sudo: yes
+
+    - yum: name=gcc state=latest
+      sudo: yes
+
+    - file: path=~/tmp state=directory
+
+    - get_url: url=https://github.com/antirez/redis/archive/2.8.21.tar.gz
+               dest=~/tmp/redis.tar.gz
+      # when: redis_server_path == 0
+
+    - command: tar zxvf redis.tar.gz chdir=~/tmp
+      # when: redis_server_path == 0
+
+    - command: make chdir=~/tmp/redis-2.8.21
+      # when: redis_server_path == 0
+
+    - command: sudo make install chdir=~/tmp/redis-2.8.21
+      # when: redis_server_path == 0
+
+    - copy: src=./redis/redis.conf dest=/etc/redis.conf owner=vagrant
+      sudo: yes
+
+    - copy: src=./redis/sentinel.conf dest=/etc/sentinel.conf owner=vagrant
+      sudo: yes
+
+    - command: bash -c 'ps aux | grep redis-server | wc -l'
+      register: is_boot_redis_server
+      changed_when: false
+      always_run: yes
+
+    - command: redis-server /etc/redis.conf
+      sudo: no
+      when: is_boot_redis_server != 3

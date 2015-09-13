@@ -1,0 +1,6 @@
+[ap_server]
+ap01
+ap02
+
+[session_server]
+sess01

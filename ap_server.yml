@@ -1,0 +1,65 @@
+---
+
+- hosts: ap_server
+  tasks:
+    - yum: name=* state=latest
+      sudo: yes
+
+    - yum: name={{ item }} state=latest
+      with_items:
+        - epel-release
+        - java-1.8.0-openjdk
+        - java-1.8.0-openjdk-devel
+      sudo: yes
+
+    - file: path=~/tmp state=absent
+
+    - file: path=~/tmp state=directory
+
+    - file: path=/opt state=absent
+      sudo: yes
+
+    - file: path=/opt state=directory
+      sudo: yes
+
+    - get_url: url=http://ftp.riken.jp/net/apache/tomcat/tomcat-8/v8.0.26/bin/apache-tomcat-8.0.26.tar.gz
+               dest=~/tmp/apache-tomcat-8.0.26.tar.gz
+
+    - command: tar zxvf apache-tomcat-8.0.26.tar.gz chdir=~/tmp
+
+    - command: sudo cp -R ~/tmp/apache-tomcat-8.0.26/ /opt/tomcat
+
+    - copy: src=./tomcat/tomcat-users.xml dest=/opt/tomcat/conf
+      sudo: yes
+
+    - copy: src=./spring-session/httpsession-xml-1.0.2.RELEASE.war
+            dest=/opt/tomcat/webapps
+      sudo: yes
+
+    - copy: src=./tomcat/tomcat.service dest=/etc/systemd/system/
+      sudo: yes
+
+    - copy: src=./tomcat/tomcat dest=/etc/sysconfig/
+      sudo: yes
+
+    - service: name=tomcat enabled=yes
+      sudo: yes
+
+    - service: name=firewalld state=started
+      sudo: yes
+
+    - service: name=tomcat state=started
+      sudo: yes
+
+    - copy: src=./tomcat/tomcat.xml dest=/etc/firewalld/services/tomcat.xml
+      sudo: yes
+
+    - firewalld: port=8080/tcp permanent=true state=enabled immediate=true
+      sudo: yes
+
+    - copy: src=./spring-session/session.xml
+            dest=/opt/tomcat/webapps/httpsession-xml-1.0.2.RELEASE/WEB-INF/spring
+      sudo: yes
+
+    - service: name=tomcat state=restarted
+      sudo: yes
